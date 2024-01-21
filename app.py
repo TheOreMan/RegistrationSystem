@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_bcrypt import Bcrypt
 import sqlite3
-e
+
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 app.secret_key = 'your_secret_key' #for encrypting the session data
