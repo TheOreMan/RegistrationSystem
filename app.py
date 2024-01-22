@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_bcrypt import Bcrypt
 import sqlite3
+from tacacs_handler import authenticate as tacacs_authenticate
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
@@ -28,6 +29,7 @@ def register():
     confirm_password = request.form['confirm_password']
     if password != confirm_password: return 'Passwords do not match!'
     password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+    print("HASH: "+password_hash)
     conn = sqlite3.connect('user_database.db')
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
@@ -81,6 +83,22 @@ def example_boolean():
     username = request.args.get('username')
     password = request.args.get('password')
     return jsonify({'result': checkUserData(username,password)})
+
+def secondFactor(username,something):
+    return True
+
+@app.route('/authenticateTacacs', methods=['GET'])
+def authenticateTacacs():
+    username = request.args.get('username')
+    password = request.args.get('password')
+    passhash = bcrypt.generate_password_hash(password).decode('utf-8')
+    print("HASH: "+passhash)
+    b = tacacs_authenticate(username,password)
+    res = False
+    if b:
+        something = request.args.get('smth')
+        res = secondFactor(username,something)
+    return jsonify({'result': res})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
